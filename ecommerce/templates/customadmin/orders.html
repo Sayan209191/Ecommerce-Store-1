@@ -26,6 +26,9 @@
             color:magenta
         }
 
+        .status-shipped {
+            color: #2f92ee;
+        }
         .status-delivered {
             color: chartreuse;
         }
@@ -33,6 +36,9 @@
             color: red;
         }
 
+        .status-out-for-delivery {
+            color: darkmagenta;
+        }
         .status-cancelled {
             color: orangered;
         }
@@ -40,6 +46,18 @@
         .status-paid {
             color: green;
         }
+        button {
+            background-color: #2ebe36;
+            color: white;
+            padding: 10px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+          }
+          
+          button.header {
+            background-color: #2f92ee;
+          }
     </style>
 </head>
 
@@ -66,15 +84,27 @@
         <tr>
             <td>{{ order.order_id }}</td>
             <td>{{ order.name }}</td>
-            <td>{{order.date_added}}</td>
+            <td>{{order.date}}</td>
             <td>{{ order.email }}</td>
             <td>{{ order.cost }}</td>
             <td>{{ order.payment_status }}</td>
-            <td class="{% if order.delivery_status == 'Delivered' %}status-delivered{% elif order.delivery_status == 'Failed' %}status-failed{% elif order.delivery_status == 'Cancelled' %}status-cancelled{% elif order.delivery_status == 'Paid' %}status-paid{% else %}status-pending{% endif %}">
-                {{ order.delivery_status }}
+            <td class="{% if order.delivery_status == 'New' %}status-new
+                    {% elif order.delivery_status == 'Processing' %}status-processing
+                    {% elif order.delivery_status == 'Shipped' %}status-shipped
+                    {% elif order.delivery_status == 'Out For Delivary' %}status-out-for-delivery
+                    {% elif order.delivery_status == 'Delivered' %}status-delivered
+                    {% elif order.delivery_status == 'Canceled' %}status-cancelled
+                {% endif %}"> {{ order.delivery_status }}
             </td>
-            <td>{{order.address1}}</td>
-            <td>Edit</td>
+            
+            
+            <td>{{order.address}}</td>
+            <td>
+                <form action="{% url 'customadmin:edit_order' order.order_id %}" method="GET">
+                    {% csrf_token %}
+                    <button type="submit">Edit</button>
+                  </form>
+            </td>
             
             
         </tr>

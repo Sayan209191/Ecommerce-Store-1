@@ -1,4 +1,4 @@
-from django.shortcuts import render, HttpResponse, redirect , get_object_or_404
+from django.shortcuts import render, redirect , get_object_or_404
 from django.contrib.auth import authenticate,login,logout
 from django.contrib import messages
 from django.contrib.auth.models import User
@@ -83,26 +83,6 @@ def user(request) :
     return render(request, "customadmin/user.html", {'users':users})
 
 
-# show all order details
-
-def orders(request) :
-    all_orders = Orders.objects.all()
-
-    # Prepare data to pass to the template
-    orders_data = []
-    for order in all_orders:
-        order_data = {
-            'order_id': order.order_id,
-            'email': order.email,
-            'cost': order.amount,
-            'payment_status': order.paymentstatus,
-            'delivery_status': 'Delivered' if order.complete else 'Pending',  
-            'address': order.address1 + " " + order.address2 + " " + order.city + " " + order.state + " " + order.zip_code
-        }
-        orders_data.append(order_data)
-
-    # Pass the data to the template
-    return render(request, "customadmin/orders.html", {'orders_data': orders_data})
 
 
 # add new customer
@@ -241,4 +221,68 @@ def delete_product(request, product_id):
         # Render a confirmation page
         return render(request, 'customadmin/confirm_delete_product.html', {'product': product})  
     
-    
+# show all order details
+
+def orders(request) :
+    all_orders = Orders.objects.all()
+
+    # Prepare data to pass to the template
+    orders_data = []
+    for order in all_orders:
+        order_update, _ = OrderUpdate.objects.get_or_create(order_id=order)
+        order_data = {
+            'order_id': order.order_id,
+            'name':order.name,
+            'date':order.date_added,
+            'email': order.email,
+            'cost': order.amount,
+            'payment_status': order.paymentstatus,
+            'delivery_status': order_update.update_desc,    
+            'address': order.address1 + " " + order.address2 + " " + order.city + " " + order.state + " " + order.zip_code
+        }
+        orders_data.append(order_data)
+
+    # Pass the data to the template
+    return render(request, "customadmin/orders.html", {'orders_data': orders_data})
+
+
+def edit_order(request, order_id):
+    order = get_object_or_404(Orders, pk=order_id)
+    order_status, _ = OrderUpdate.objects.get_or_create(order_id=order)
+
+    if request.method == 'POST':
+        # Fetch data from POST request
+        amount = request.POST.get('amount')
+        name = request.POST.get('name')
+        email = request.POST.get('email')
+        address1 = request.POST.get('address1')
+        address2 = request.POST.get('address2')
+        city = request.POST.get('city')
+        state = request.POST.get('state')
+        zip_code = request.POST.get('zip_code')
+        phone = request.POST.get('phone')
+        complete = request.POST.get('complete')
+        update_desc = request.POST.get('order_status')
+
+        # Update Orders model
+        order.amount = amount
+        order.name = name
+        order.email = email
+        order.address1 = address1
+        order.address2 = address2
+        order.city = city
+        order.state = state
+        order.zip_code = zip_code
+        order.phone = phone
+        order.complete = complete
+        order.save()
+
+        # Update OrderStatus
+        order_status.update_desc = update_desc
+        order_status.save()
+
+        messages.success(request, 'Order Edited Successfully')
+        return redirect('/admin/orders')
+
+    else:
+        return render(request, 'customadmin/editorder.html', {'order': order, 'order_status': order_status})
