@@ -88,7 +88,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'infykart',
         'USER' : 'root',
-        'PASSWORD' : 'Sayan@2091@',
+        'PASSWORD' : 'Sayan@1234',
         'HOST' : '127.0.0.1',
         'PORT' : '3306',
     }
